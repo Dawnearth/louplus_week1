@@ -21,23 +21,35 @@ TAX_QUICK_LOOKUP_TABLE = [
     TaxRateQuickDeductionItem(0,0.03,0)
 ]
 
+SOCIAL_INSURANCE_MONEY_RATE = {
+    'endowment_insurance':0.08,
+    'medical_insurance':0.02,
+    'unemployment_insurance':0.005,
+    'employment_injury_insurance':0,
+    'maternity_insurance':0,
+    'public_accumulation_funds':0.06
+}
+
 def calc_income_tax(income):
-    taxtable_part = income - TAX_RATE_START_POINT
+    total_rate = sum(SOCIAL_INSURANCE_MONEY_RATE.values())
+    after_rate_money = income * (1 - total_rate )
+    taxtable_part = after_rate_money - TAX_RATE_START_POINT
     if taxtable_part <= 0:
-        return '0.00'
+        return '{:.2f}'.format(after_rate_money)
     for item in TAX_QUICK_LOOKUP_TABLE:
         if taxtable_part  > item.start_point:
             tax = taxtable_part * item.tax_rete -item.qucik_deduction
-            return '{:.2f}'.format(tax) 
+            return '{:.2f}'.format(after_rate_money - tax)
 
 def main():
-    if len(sys.argv) != 2:
-       print("paramter Error")
-    try:
-       income = int(sys.argv[1])
-    except ValueError:
-       print('parameter Error')
-    print(calc_income_tax(income))
+    for item in sysy.argv[1:]:
+        worker_id,income_money = item.split(':')
+        try:
+            income = int( income_money )
+        except ValueError:
+            print('Parameter Error')
+        remain = calc_income_tax(income)
+        print('{}:{}'.format(worker_id,remain))
 
 if __name__ == '__main__':
     main()
