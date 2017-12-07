@@ -98,7 +98,16 @@ class UserData(object):
     def _read_users_data(self):
         userdata_path = args.userdata_path 
         userdata = []
-        with open(userdata_path) as userdata
+        with open(userdata_path) as user_money:
+            for line in user_money.readlines():
+                employee_id,income_string = line.strip().split(',')
+                try:
+                    income = int (income_string)
+                except ValueError:
+                    print("Parameter Error")
+                    os.exit()
+                userdata
+
 
 def cncome_tax(income):
     total_rate = sum(SOCIAL_INSURANCE_MONEY_RATE.values())
