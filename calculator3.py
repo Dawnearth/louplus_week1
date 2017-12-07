@@ -2,6 +2,8 @@
 # -*- conding: utf-8 -*-
 
 import sys
+import csv
+import os
 from collections import namedtuple
 
 TaxRateQuickDeductionItem = namedtuple(
@@ -21,16 +23,93 @@ TAX_QUICK_LOOKUP_TABLE = [
     TaxRateQuickDeductionItem(0,0.03,0)
 ]
 
-SOCIAL_INSURANCE_MONEY_RATE = {
-    'endowment_insurance':0.08,
-    'medical_insurance':0.02,
-    'unemployment_insurance':0.005,
-    'employment_injury_insurance':0,
-    'maternity_insurance':0,
-    'public_accumulation_funds':0.06
-}
+class Args(object):
+    """docstring for Args"""
+    def __init__(self):
+        self.args = sys.argv[1:]
+    def _value_after_option(self,option):
+        try:
+            index = self.args.index(option)
+            return self.args[index + 1]
+        except(ValueError,IndexError):
+            print("Parameter Error")
+            os.exit()
+    @property
+    def config_path(self):
+        return self._value_after_option('-c')
 
-def calc_income_tax(income):
+    @property
+    def userdata_path(self):
+        return self._value_after_option('-d')
+
+    @property
+    def export_path(self):
+        return self._value_after_option('-o')
+args = Args()
+
+class Config(object):
+    """docstring for Config"""
+    def __init__(self):
+        self.config = self._read_config()
+
+    def _read_config(self):
+        config_path = args.config_path
+        config = {}
+        with open (config_path) as path:
+            for line in path.readlines():
+                key,value = line.strip().split('=')
+                try:
+                    config[key]  = float(value)
+                except ValueError:
+                    print("Parameter Error")
+                    os.exit()
+        return config
+    
+    def _get_config(self,key):
+        try:
+            return self.config[key]
+        except KeyError:
+            print('Config Error')
+            os.exit()  
+    @property 
+    def social_insurance_baseline_low(self):
+        return self._get_config('JiShuL')
+    @property
+    def socail_insurance_baseline_high(self):
+        return self._get_config('JiShuH')
+    @property 
+    def social_insurance_total_rate(self):
+        return sum([
+                self._get_config('YangLao'),
+                self._get_config('YiLiao'),
+                self._get_config('ShiYe'),
+                self._get_config('GongShang'),
+                self._get_config('ShengYu'),
+                self._get_config('GongJiJin')
+            ])
+
+config = Config()
+
+class UserData(object):
+    """docstring for UserData"""
+    def __init__(self):
+        self.userdata = self._read_users_data()
+    
+    def _read_users_data(self):
+        userdata_path = args.userdata_path 
+        userdata = []
+        with open(userdata_path) as user_money:
+            for line in user_money.readlines():
+                employee_id,income_string = line.strip().split(',')
+                try:
+                    income = int (income_string)
+                except ValueError:
+                    print("Parameter Error")
+                    os.exit()
+                userdata
+
+
+def cncome_tax(income):
     total_rate = sum(SOCIAL_INSURANCE_MONEY_RATE.values())
     after_rate_money = income * (1 - total_rate )
     taxtable_part = after_rate_money - TAX_RATE_START_POINT
